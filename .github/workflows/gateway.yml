@@ -19,7 +19,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.IAM_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ca-central-1
 
       # --- STEP 1: Ensure Service Exists ---
       # Checks if the "cloudflare-gateway" service is running. If not, creates it.
