@@ -2,5 +2,5 @@
   { "hostname": "s3.allofcanada.ca", "service": "http://localhost:9000" },
   { "hostname": "dinner.allofcanada.ca", "service": "http://localhost:5000" },
   { "hostname": "demo.allofcanada.ca", "service": "http://localhost:5002" },
-  { "hostname": "dbakery.allofcanada.ca", "service": "http://localhost:5003" }
+  { "hostname": "green.allofcanada.ca", "service": "http://localhost:5003" }
 ]
