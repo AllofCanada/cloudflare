@@ -1,0 +1,64 @@
+name: Deploy Cloudflare Gateway (Infrastructure)
+
+on:
+  workflow_dispatch:
+    # This allows you to run it manually from the Actions tab
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-gateway:
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # --- STEP 1: Ensure Service Exists ---
+      # Checks if the "cloudflare-gateway" service is running. If not, creates it.
+      - name: Ensure Gateway Service exists
+        run: |
+          CLUSTER_NAME="external-instance-mini-pc"
+          SERVICE_NAME="cloudflare-gateway"
+          TASK_DEF_FILE="ecs/cloudflared.json"
+
+          echo "Checking status for Service: $SERVICE_NAME..."
+
+          # Check status (suppress errors if service doesn't exist)
+          STATUS=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query "services[0].status" --output text 2>/dev/null || echo "MISSING")
+          
+          if [ "$STATUS" != "ACTIVE" ]; then
+            echo "Service '$SERVICE_NAME' not found. Creating it now..."
+            
+            # Register the task definition specifically for the creation step
+            TD_ARN=$(aws ecs register-task-definition --cli-input-json file://$TASK_DEF_FILE --query "taskDefinition.taskDefinitionArn" --output text)
+            
+            aws ecs create-service \
+              --cluster $CLUSTER_NAME \
+              --service-name $SERVICE_NAME \
+              --task-definition $TD_ARN \
+              --desired-count 1 \
+              --launch-type EXTERNAL \
+              --deployment-configuration "maximumPercent=100,minimumHealthyPercent=0"
+          else
+            echo "Service '$SERVICE_NAME' already exists. Ready for update."
+          fi
+
+      # --- STEP 2: Deploy / Update ---
+      # This registers the JSON file again (to catch any changes) and forces a deployment.
+      - name: Deploy Gateway to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ecs/cloudflared.json
+          service: cloudflare-gateway
+          cluster: external-instance-mini-pc
+          wait-for-service-stability: true
+          # Force new deployment ensures it pulls the latest image from Cloudflare
+          force-new-deployment: true

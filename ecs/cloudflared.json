@@ -1,0 +1,41 @@
+{
+    "family": "cloudflare-gateway",
+    "networkMode": "host",
+    "containerDefinitions": [
+        {
+            "name": "tunnel",
+            "image": "cloudflare/cloudflared:latest",
+            "essential": true,
+            "cpu": 0,
+            "secrets": [
+                {
+                    "name": "TUNNEL_TOKEN",
+                    "valueFrom": "arn:aws:ssm:ca-central-1:541804384520:parameter/prod/cloudflare/token"
+                }
+            ],
+            "command": [
+                "tunnel",
+                "--no-autoupdate",
+                "run"
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/cloudflare-gateway",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "ca-central-1",
+                    "awslogs-stream-prefix": "tunnel"
+                }
+            }
+        }
+    ],
+    "taskRoleArn": "arn:aws:iam::541804384520:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::541804384520:role/ecsTaskExecutionRole",
+    "requiresCompatibilities": ["EXTERNAL"],
+    "cpu": "256",
+    "memory": "256",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    }
+}

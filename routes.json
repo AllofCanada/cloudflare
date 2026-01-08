@@ -1,0 +1,5 @@
+[
+  { "hostname": "s3.allofcanada.ca", "service": "http://localhost:9000" },
+  { "hostname": "dinner.allofcanada.ca", "service": "http://localhost:5000" },
+  { "hostname": "demo.allofcanada.ca", "service": "http://localhost:5002" }
+]
