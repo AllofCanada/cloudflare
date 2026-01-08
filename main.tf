@@ -19,6 +19,9 @@ variable "cloudflare_api_token" {
 variable "cloudflare_account_id" {
   type = string
 }
+variable "cloudflare_tunnel_id" {
+  type = string
+}
 
 locals {
   route_data = jsondecode(file("${path.module}/routes.json"))
@@ -26,7 +29,7 @@ locals {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "ecs_external_config" {
   account_id = var.cloudflare_account_id
-  tunnel_id  = "faaebdd0-d62d-4ce2-b161-0f4508a56697"
+  tunnel_id  = var.cloudflare_tunnel_id
 
   # In v5.x, 'config' is an attribute (=) and takes an object
   # Ingress rules are passed as a list of objects under the 'ingress' key
